@@ -9,32 +9,46 @@ def get_data_textbook():
     """
     
     # State space [𝒮]: The set of all possible configurations or observations of the environment that we can be in.
-    states = ["Room 1", "Room 2", "Room 3", "Outside", "Found item"]
+    states = ["Room 1", "Room 2", "Room 3", "Room 4", "Outside", "Found item"]
+
 
 
     # Reward [R(s,a)]: Reward of taking action 𝑎 in state 𝑠 
-    reward = {("Room 1", "Go to room 2"): -1,
-                ("Room 2", "Go to room 1"): -2,
-                ("Room 2", "Go to room 3"): -1,
-                ("Room 2", "Go outside"): 0,
-                ("Room 3", "Go to room 2"): -2,
-                ("Room 3", "Search"): 10,
-                ("Outside", "Go outside"): -1,    # =-1 in textbook figure, but =-2 in textbook GitHub code (and used for textbook values)
-                ("Outside", "Go inside"): 0              
-                }
+    reward = {
+    ("Room 1", "Go to room 1"): -1,
+    ("Room 1", "Go to room 2"): -1,
+    ("Room 1", "Go to room 4"): 1,
+
+    ("Room 2", "Go to room 3"): -1,
+    ("Room 2", "Go outside"): 1,
+
+    ("Room 3", "Search"): 10,
+    ("Room 3", "Go outside"): 1,
+
+    ("Room 4", "Search"): 10,
+
+    ("Outside", "Go inside"): 0
+}
+
 
     # Transition probability [P(s'|s,a)]: The transition probability from the current state 𝑠 to its successor state 𝑠′ 
     # depends on the current state 𝑠 and the action 𝑎 chosen by the agent. There may be multiple successor states.
     transition_prob = {
-        ("Room 1", "Go to room 2"): {"Room 2": 1.0},
-        ("Room 2", "Go to room 1"): {"Room 1": 1.0},
-        ("Room 2", "Go to room 3"): {"Room 3": 1.0},
-        ("Room 2", "Go outside"): {"Outside": 1.0},
-        ("Room 3", "Go to room 2"): {"Room 2": 1.0},
-        ("Room 3", "Search"): {"Found item": 1.0},
-        ("Outside", "Go outside"): {"Outside": 1.0},   
-        ("Outside", "Go inside"): {"Room 2": 1.0} 
-    }
+    ("Room 1", "Go to room 1"): {"Room 1": 1.0},
+    ("Room 1", "Go to room 2"): {"Room 2": 1.0},
+    ("Room 1", "Go to room 4"): {"Room 4": 1.0},
+
+    ("Room 2", "Go to room 3"): {"Room 3": 1.0},
+    ("Room 2", "Go outside"): {"Outside": 1.0},
+
+    ("Room 3", "Search"): {"Found item": 1.0},
+    ("Room 3", "Go outside"): {"Outside": 1.0},
+
+    ("Room 4", "Search"): {"Found item": 1.0},
+
+    ("Outside", "Go inside"): {"Room 2": 1.0}
+}
+
 
     return states, reward, transition_prob
 
@@ -49,12 +63,14 @@ def get_policy_random():
 
     # Policy [𝜋(a|s)]: The probability to take action 𝑎 in the current state 𝑠 under policy 𝜋
     policy_random = {
-        "Room 1": {"Go to room 2": 1.0},
-        "Room 2": {"Go to room 1": 1/3, "Go to room 3": 1/3, "Go outside": 1/3},
-        "Room 3": {"Go to room 2": 0.5, "Search": 0.5},
-        "Outside": {"Go inside": 0.5, "Go outside": 0.5},
-        "Found item": {}
-    }
+    "Room 1": {"Go to room 1": 1/3, "Go to room 2": 1/3, "Go to room 4": 1/3},
+    "Room 2": {"Go to room 3": 0.5, "Go outside": 0.5},
+    "Room 3": {"Search": 0.5, "Go outside": 0.5},
+    "Room 4": {"Search": 1.0},
+    "Outside": {"Go inside": 1.0},
+    "Found item": {}
+}
+
 
     return policy_random
 
@@ -111,7 +127,7 @@ def policy_evaluation(states, policy, reward, transition_prob, discount, delta_t
     print(f"State value function after {count} iterations: {V}")
 
 
-def value_iteration(states, reward, transition_prob, discount, delta_threshold=0.00001):
+def value_iteration(states, reward, transition_prob, discount, delta_threshold=0.9):
     """
     Given a policy function, reward function, transition probability function, discount factor and a delta threshold,
     find a optimal policy 𝜋* along with optimal state value function V*.
